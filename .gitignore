@@ -1,0 +1,23 @@
+# Secretos y configuracion local (nunca en el repo, ver .env.example)
+.env
+.env.*.local
+
+# IDEs y editores
+.vs/
+.vscode/
+.idea/
+*.iml
+*.DotSettings.user
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Skills / herramientas locales
+.gstack
+
+# Los subproyectos backend/ y frontend/ tienen su propio .gitignore
+# para lo especifico de Maven y Node respectivamente.
+CLAUDE.md
+/presentacion
+
