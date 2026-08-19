@@ -19,5 +19,5 @@ Thumbs.db
 # Los subproyectos backend/ y frontend/ tienen su propio .gitignore
 # para lo especifico de Maven y Node respectivamente.
 CLAUDE.md
-/presentacion
+/presentacion/
 
