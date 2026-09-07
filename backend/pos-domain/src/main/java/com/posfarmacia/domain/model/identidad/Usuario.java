@@ -22,6 +22,13 @@ public final class Usuario extends Entidad {
     private UUID localId;
     private EnumSet<PermisoEspecial> permisos;
     private EstadoCuenta estado;
+    /** Correo con el que el usuario inicia sesion via un proveedor social (RF01); null si solo usa contrasena. */
+    private String email;
+    /** Proveedor social vinculado ("google", "facebook"); null si la cuenta es local. */
+    private String proveedorOauth;
+    /** Secreto TOTP compartido con Google Authenticator; null si el usuario nunca inicio el registro de MFA. */
+    private String mfaSecret;
+    private boolean mfaHabilitado;
 
     public Usuario(String nombreUsuario, String passwordHash, UUID localId) {
         super();
@@ -44,6 +51,39 @@ public final class Usuario extends Entidad {
         if (rolesIds != null) {
             this.rolesIds.addAll(rolesIds);
         }
+    }
+
+    /** Crea la cuenta de un usuario que se autentica con un proveedor social, sin contrasena local. */
+    public static Usuario deProveedorSocial(String nombreUsuario, String email, String proveedor, UUID localId) {
+        Usuario usuario = new Usuario(nombreUsuario, null, localId);
+        usuario.vincularCuentaSocial(proveedor, email);
+        return usuario;
+    }
+
+    public void vincularCuentaSocial(String proveedor, String email) {
+        this.proveedorOauth = proveedor;
+        this.email = email;
+    }
+
+    /**
+     * Guarda el secreto TOTP recien generado. El MFA queda pendiente hasta que el usuario
+     * demuestre, con un codigo valido, que su app de autenticacion quedo bien configurada.
+     */
+    public void prepararMfa(String secreto) {
+        this.mfaSecret = Objects.requireNonNull(secreto, "el secreto MFA no puede ser nulo");
+        this.mfaHabilitado = false;
+    }
+
+    public void confirmarMfa() {
+        if (mfaSecret == null) {
+            throw new IllegalStateException("no hay un secreto MFA pendiente de confirmar");
+        }
+        this.mfaHabilitado = true;
+    }
+
+    public void deshabilitarMfa() {
+        this.mfaSecret = null;
+        this.mfaHabilitado = false;
     }
 
     public void asignarRol(UUID rolId) {
@@ -88,6 +128,22 @@ public final class Usuario extends Entidad {
 
     public Set<PermisoEspecial> getPermisos() {
         return EnumSet.copyOf(permisos);
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getProveedorOauth() {
+        return proveedorOauth;
+    }
+
+    public String getMfaSecret() {
+        return mfaSecret;
+    }
+
+    public boolean tieneMfaHabilitado() {
+        return mfaHabilitado;
     }
 
     public Set<UUID> getRolesIds() {

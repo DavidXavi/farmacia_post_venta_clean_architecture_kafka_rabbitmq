@@ -11,6 +11,9 @@ Indice de esta carpeta:
   organizados los modulos del backend.
 - `KAFKA_Y_RABBITMQ.md` — por que se agregaron dos brokers de mensajeria en vez de uno, que
   problema resuelve cada uno, y como estan conectados con el resto del sistema.
+- `autenticacion/` — todo lo del login con Google y Facebook y del segundo factor con Google
+  Authenticator: el manual para quien usa el sistema, el mapa de donde se modifico el codigo, y
+  las decisiones de diseno detras del cambio. Empezar por `autenticacion/README.md`.
 - `COMO_EJECUTAR.md` — como levantar todo con Docker y como comprobar, paso a paso, que
   funciona (incluye lo que se verifico en el navegador durante el desarrollo).
 - `ESTADO_MIGRACION.md` — estado actual del proyecto: que se porto de t3, que se agrego, y que

@@ -65,6 +65,34 @@ Estos ocho pasos son exactamente los que se ejecutaron para validar el proyecto:
 apertura de caja, la venta completa, y la comprobacion visual de que ambos brokers entregaron sus
 mensajes, sin necesidad de leer los logs del contenedor del backend.
 
+## Verificacion del segundo factor (Google Authenticator)
+
+Detalle completo en la carpeta `autenticacion/` (manual de uso, cambios en el codigo y
+decisiones de diseno). Comprobacion en el navegador:
+
+1. Con la sesion de `admin` abierta, ir a **Seguridad (MFA)** en el menu lateral y presionar
+   **Activar**: aparece el codigo QR y, debajo, la clave para carga manual.
+2. Escanear el QR con Google Authenticator (o escribir la clave a mano en la app).
+3. Escribir en el formulario el codigo de 6 digitos que muestra la app y presionar
+   **Confirmar**. El aviso confirma que quedo activado.
+4. Cerrar sesion y volver a entrar con `admin` / `Admin123!`: ahora aparece la pantalla
+   **Verificacion en dos pasos** en vez de entrar directo. Escribir el codigo de la app.
+5. Un codigo incorrecto responde `MFA_REQUERIDA` y no abre sesion; el token intermedio caduca a
+   los 5 minutos.
+6. Para volver al estado inicial, en **Seguridad (MFA)** presionar **Desactivar**.
+
+## Verificacion del login social (Google / Facebook)
+
+En la pantalla de acceso, los botones **Continuar con Google** y **Continuar con Facebook**
+llevan al consentimiento del proveedor y vuelven al POS con la sesion iniciada.
+
+Sin credenciales reales en `.env`, el flujo llega hasta el proveedor y este responde
+`invalid_client` (Google) o el equivalente de Facebook: eso confirma que la redireccion y la URI
+de retorno estan bien armadas, pero para completar el login hay que registrar la aplicacion en
+cada consola y poner `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` /
+`FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` en `.env` (el paso a paso esta en
+`autenticacion/MANUAL.md`).
+
 ## Pruebas automatizadas del backend
 
 ```

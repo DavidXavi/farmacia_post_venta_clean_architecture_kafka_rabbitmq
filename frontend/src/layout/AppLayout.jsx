@@ -16,6 +16,7 @@ const ENLACES = [
   { to: '/creditos', label: 'Lineas de credito', icono: 'fa-credit-card' },
   { to: '/catalogos', label: 'Catalogos', icono: 'fa-list-ul' },
   { to: '/usuarios', label: 'Usuarios', icono: 'fa-user-gear' },
+  { to: '/seguridad', label: 'Seguridad (MFA)', icono: 'fa-shield-halved' },
   { to: '/reportes', label: 'Reportes', icono: 'fa-chart-line' },
   { to: '/auditoria', label: 'Auditoria', icono: 'fa-clipboard-list' },
   { to: '/actividad-reciente', label: 'Actividad (Kafka/RabbitMQ)', icono: 'fa-diagram-project' },

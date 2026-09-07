@@ -36,6 +36,11 @@ public class UsuarioRepositoryAdapter implements UsuarioRepositoryPort {
     }
 
     @Override
+    public Optional<Usuario> buscarPorEmail(String email) {
+        return usuarios.findByEmail(email).map(this::aDominioConRoles);
+    }
+
+    @Override
     public Usuario guardar(Usuario usuario) {
         usuarios.save(UsuarioMapper.aEntidad(usuario));
 

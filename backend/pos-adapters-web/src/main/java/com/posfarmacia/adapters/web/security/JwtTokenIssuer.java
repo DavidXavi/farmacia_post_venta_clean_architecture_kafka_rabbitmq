@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -22,14 +23,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtTokenIssuer {
 
+    /** Marca el token intermedio que solo sirve para presentar el segundo factor. */
+    public static final String SCOPE_MFA_PENDIENTE = "MFA_PENDIENTE";
+
     private final Key clave;
     private final long expiracionMinutos;
+    private final long expiracionMfaMinutos;
 
     public JwtTokenIssuer(
             @Value("${pos-farmacia.jwt.secret}") String secreto,
-            @Value("${pos-farmacia.jwt.expiration-minutes:480}") long expiracionMinutos) {
+            @Value("${pos-farmacia.jwt.expiration-minutes:480}") long expiracionMinutos,
+            @Value("${pos-farmacia.jwt.mfa-expiration-minutes:5}") long expiracionMfaMinutos) {
         this.clave = Keys.hmacShaKeyFor(secreto.getBytes(StandardCharsets.UTF_8));
         this.expiracionMinutos = expiracionMinutos;
+        this.expiracionMfaMinutos = expiracionMfaMinutos;
     }
 
     public String emitir(UsuarioAutenticado usuario) {
@@ -47,5 +54,33 @@ public class JwtTokenIssuer {
                 .expiration(Date.from(ahora.plus(Duration.ofMinutes(expiracionMinutos))))
                 .signWith(clave)
                 .compact();
+    }
+
+    /**
+     * Token de corta vida emitido cuando el primer factor fue correcto pero la cuenta exige MFA.
+     * No lleva roles ni permisos, asi que no abre ningun endpoint: solo identifica al usuario
+     * ante /api/auth/mfa/verificar.
+     */
+    public String emitirPendienteMfa(UUID usuarioId) {
+        Instant ahora = Instant.now();
+        return Jwts.builder()
+                .subject(usuarioId.toString())
+                .claim("scope", SCOPE_MFA_PENDIENTE)
+                .issuedAt(Date.from(ahora))
+                .expiration(Date.from(ahora.plus(Duration.ofMinutes(expiracionMfaMinutos))))
+                .signWith(clave)
+                .compact();
+    }
+
+    /** Devuelve el id del usuario que ese token intermedio identifica, o falla si no lo es. */
+    public UUID usuarioDePendienteMfa(String token) {
+        var claims = Jwts.parser().verifyWith((javax.crypto.SecretKey) clave).build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        if (!SCOPE_MFA_PENDIENTE.equals(claims.get("scope", String.class))) {
+            throw new io.jsonwebtoken.JwtException("El token no corresponde a una verificacion de MFA.");
+        }
+        return UUID.fromString(claims.getSubject());
     }
 }

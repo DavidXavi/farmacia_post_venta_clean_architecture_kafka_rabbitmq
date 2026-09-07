@@ -4,6 +4,7 @@ import com.posfarmacia.domain.exception.CajaCerradaException;
 import com.posfarmacia.domain.exception.CredencialesInvalidasException;
 import com.posfarmacia.domain.exception.DomainException;
 import com.posfarmacia.domain.exception.EntidadNoEncontradaException;
+import com.posfarmacia.domain.exception.MfaRequeridaException;
 import com.posfarmacia.domain.exception.ValorInvalidoException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.UUID;
@@ -28,6 +29,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CredencialesInvalidasException.class)
     public ResponseEntity<ErrorResponse> manejar(CredencialesInvalidasException ex, HttpServletRequest request) {
         return construir(HttpStatus.UNAUTHORIZED, "CREDENCIALES_INVALIDAS", ex, request);
+    }
+
+    /** Codigo propio para que el cliente pida el codigo TOTP en vez de las credenciales otra vez. */
+    @ExceptionHandler(MfaRequeridaException.class)
+    public ResponseEntity<ErrorResponse> manejar(MfaRequeridaException ex, HttpServletRequest request) {
+        return construir(HttpStatus.UNAUTHORIZED, "MFA_REQUERIDA", ex, request);
     }
 
     @ExceptionHandler(EntidadNoEncontradaException.class)

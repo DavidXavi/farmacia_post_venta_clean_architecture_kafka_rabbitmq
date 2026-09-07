@@ -1,27 +1,110 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { BASE_URL } from '../api/client'
+
+const PROVEEDORES = [
+  { id: 'google', label: 'Continuar con Google', icono: 'fa-google' },
+  { id: 'facebook', label: 'Continuar con Facebook', icono: 'fa-facebook-f' },
+]
 
 export function LoginPage() {
-  const { login } = useAuth()
+  const { login, verificarMfa, iniciarSesionConToken } = useAuth()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const [nombreUsuario, setNombreUsuario] = useState('admin')
   const [password, setPassword] = useState('')
+  const [codigo, setCodigo] = useState('')
+  const [mfaToken, setMfaToken] = useState(null)
   const [error, setError] = useState(null)
   const [cargando, setCargando] = useState(false)
+
+  // El login social vuelve del backend por redireccion, con el resultado en la URL.
+  useEffect(() => {
+    const token = params.get('token')
+    const pendiente = params.get('mfaToken')
+    const errorSocial = params.get('error')
+
+    if (token) {
+      iniciarSesionConToken(token)
+      navigate('/', { replace: true })
+    } else if (pendiente) {
+      setMfaToken(pendiente)
+    } else if (errorSocial) {
+      setError(errorSocial)
+    }
+  }, [params]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function onSubmit(e) {
     e.preventDefault()
     setError(null)
     setCargando(true)
     try {
-      await login(nombreUsuario, password)
+      const resultado = await login(nombreUsuario, password)
+      if (resultado.mfaRequerido) {
+        setMfaToken(resultado.mfaToken)
+      } else {
+        navigate('/')
+      }
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setCargando(false)
+    }
+  }
+
+  async function onVerificar(e) {
+    e.preventDefault()
+    setError(null)
+    setCargando(true)
+    try {
+      await verificarMfa(mfaToken, codigo)
       navigate('/')
     } catch (err) {
       setError(err.message)
     } finally {
       setCargando(false)
     }
+  }
+
+  if (mfaToken) {
+    return (
+      <div className="pantalla-centrada">
+        <form className="tarjeta" onSubmit={onVerificar}>
+          <h1>
+            <i className="fa-solid fa-shield-halved" /> Verificacion en dos pasos
+          </h1>
+          <p className="ayuda-campo">Escribe el codigo de 6 digitos que muestra Google Authenticator.</p>
+          <label>
+            Codigo
+            <input
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+              inputMode="numeric"
+              maxLength={6}
+              autoFocus
+              required
+            />
+          </label>
+          {error && <p className="error">{error}</p>}
+          <button type="submit" disabled={cargando}>
+            <i className={`fa-solid ${cargando ? 'fa-spinner fa-spin' : 'fa-check'}`} />{' '}
+            {cargando ? 'Verificando...' : 'Verificar'}
+          </button>
+          <button
+            type="button"
+            className="boton-plano"
+            onClick={() => {
+              setMfaToken(null)
+              setCodigo('')
+              setError(null)
+            }}
+          >
+            Cancelar
+          </button>
+        </form>
+      </div>
+    )
   }
 
   return (
@@ -43,6 +126,19 @@ export function LoginPage() {
           <i className={`fa-solid ${cargando ? 'fa-spinner fa-spin' : 'fa-right-to-bracket'}`} />{' '}
           {cargando ? 'Ingresando...' : 'Ingresar'}
         </button>
+
+        <p className="separador-social">o ingresa con</p>
+        <div className="botones-sociales">
+          {PROVEEDORES.map((proveedor) => (
+            <a
+              key={proveedor.id}
+              className={`boton-social ${proveedor.id}`}
+              href={`${BASE_URL}/oauth2/authorization/${proveedor.id}`}
+            >
+              <i className={`fa-brands ${proveedor.icono}`} /> {proveedor.label}
+            </a>
+          ))}
+        </div>
       </form>
     </div>
   )

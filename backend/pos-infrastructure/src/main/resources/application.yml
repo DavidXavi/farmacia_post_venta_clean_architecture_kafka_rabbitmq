@@ -28,6 +28,20 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  security:
+    oauth2:
+      client:
+        registration:
+          # Las credenciales reales se cargan por variables de entorno (.env); los valores por
+          # defecto solo existen para que la aplicacion arranque sin ellas.
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:sin-configurar}
+            client-secret: ${GOOGLE_CLIENT_SECRET:sin-configurar}
+            scope: openid, profile, email
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID:sin-configurar}
+            client-secret: ${FACEBOOK_CLIENT_SECRET:sin-configurar}
+            scope: public_profile, email
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -38,6 +52,15 @@ pos-farmacia:
   jwt:
     secret: ${JWT_KEY:change-me-to-a-long-random-string}
     expiration-minutes: ${JWT_EXPIRATION_MINUTES:480}
+    # Vida del token intermedio entre el primer y el segundo factor.
+    mfa-expiration-minutes: ${JWT_MFA_EXPIRATION_MINUTES:5}
+  cors:
+    origenes-permitidos: ${POS_FARMACIA_CORS_ORIGENES_PERMITIDOS:http://localhost:5173}
+  mfa:
+    emisor: ${MFA_EMISOR:POS Farmacia}
+  oauth2:
+    # A donde vuelve el navegador con el JWT despues de un login social exitoso.
+    url-frontend: ${OAUTH2_URL_FRONTEND:http://localhost:5173}
   reglas:
     periodo-preventivo-vencimiento-meses: 3
 

@@ -46,6 +46,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .parseSignedClaims(header.substring(7))
                         .getPayload();
 
+                // Un token intermedio de MFA no autentica nada: solo sirve en /api/auth/mfa/verificar.
+                if (JwtTokenIssuer.SCOPE_MFA_PENDIENTE.equals(claims.get("scope", String.class))) {
+                    chain.doFilter(request, response);
+                    return;
+                }
+
                 List<?> roles = claims.get("roles", List.class);
                 List<?> permisos = claims.get("permisos", List.class);
 

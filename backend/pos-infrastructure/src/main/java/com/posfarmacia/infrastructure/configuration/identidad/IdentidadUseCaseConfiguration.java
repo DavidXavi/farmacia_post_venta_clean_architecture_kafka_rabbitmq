@@ -1,15 +1,18 @@
 package com.posfarmacia.infrastructure.configuration.identidad;
 
 import com.posfarmacia.usecases.port.in.identidad.AbrirCajaUseCase;
+import com.posfarmacia.usecases.port.in.identidad.AutenticarConProveedorUseCase;
 import com.posfarmacia.usecases.port.in.identidad.AutenticarUsuarioUseCase;
 import com.posfarmacia.usecases.port.in.identidad.CerrarCajaUseCase;
 import com.posfarmacia.usecases.port.in.identidad.ConsultarAuditoriaUseCase;
 import com.posfarmacia.usecases.port.in.identidad.ConsultarCajasUseCase;
 import com.posfarmacia.usecases.port.in.identidad.ConsultarLocalesUseCase;
 import com.posfarmacia.usecases.port.in.identidad.ConsultarSesionActivaUseCase;
+import com.posfarmacia.usecases.port.in.identidad.GestionarMfaUseCase;
 import com.posfarmacia.usecases.port.in.identidad.GestionarRolUseCase;
 import com.posfarmacia.usecases.port.in.identidad.GestionarUsuarioUseCase;
 import com.posfarmacia.usecases.port.in.identidad.RegistrarAuditoriaUseCase;
+import com.posfarmacia.usecases.port.in.identidad.VerificarSegundoFactorUseCase;
 import com.posfarmacia.usecases.port.out.ClockPort;
 import com.posfarmacia.usecases.port.out.identidad.AuditoriaRepositoryPort;
 import com.posfarmacia.usecases.port.out.identidad.CajaRepositoryPort;
@@ -17,19 +20,23 @@ import com.posfarmacia.usecases.port.out.identidad.LocalRepositoryPort;
 import com.posfarmacia.usecases.port.out.identidad.PasswordHasherPort;
 import com.posfarmacia.usecases.port.out.identidad.RolRepositoryPort;
 import com.posfarmacia.usecases.port.out.identidad.SesionCajaRepositoryPort;
+import com.posfarmacia.usecases.port.out.identidad.TotpPort;
 import com.posfarmacia.usecases.port.out.identidad.UsuarioRepositoryPort;
 import com.posfarmacia.usecases.port.out.venta.FormaPagoRepositoryPort;
 import com.posfarmacia.usecases.port.out.venta.VentaRepositoryPort;
 import com.posfarmacia.usecases.usecase.identidad.AbrirCajaUseCaseImpl;
+import com.posfarmacia.usecases.usecase.identidad.AutenticarConProveedorUseCaseImpl;
 import com.posfarmacia.usecases.usecase.identidad.AutenticarUsuarioUseCaseImpl;
 import com.posfarmacia.usecases.usecase.identidad.CerrarCajaUseCaseImpl;
 import com.posfarmacia.usecases.usecase.identidad.ConsultarAuditoriaUseCaseImpl;
 import com.posfarmacia.usecases.usecase.identidad.ConsultarCajasUseCaseImpl;
 import com.posfarmacia.usecases.usecase.identidad.ConsultarLocalesUseCaseImpl;
 import com.posfarmacia.usecases.usecase.identidad.ConsultarSesionActivaUseCaseImpl;
+import com.posfarmacia.usecases.usecase.identidad.GestionarMfaUseCaseImpl;
 import com.posfarmacia.usecases.usecase.identidad.GestionarRolUseCaseImpl;
 import com.posfarmacia.usecases.usecase.identidad.GestionarUsuarioUseCaseImpl;
 import com.posfarmacia.usecases.usecase.identidad.RegistrarAuditoriaUseCaseImpl;
+import com.posfarmacia.usecases.usecase.identidad.VerificarSegundoFactorUseCaseImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -46,6 +53,25 @@ public class IdentidadUseCaseConfiguration {
     public AutenticarUsuarioUseCase autenticarUsuarioUseCase(
             UsuarioRepositoryPort usuarios, RolRepositoryPort roles, PasswordHasherPort passwordHasher) {
         return new AutenticarUsuarioUseCaseImpl(usuarios, roles, passwordHasher);
+    }
+
+    /** RF01: login social. El proveedor ya verifico la identidad; aqui solo se resuelve la cuenta. */
+    @Bean
+    public AutenticarConProveedorUseCase autenticarConProveedorUseCase(
+            UsuarioRepositoryPort usuarios, RolRepositoryPort roles, LocalRepositoryPort locales) {
+        return new AutenticarConProveedorUseCaseImpl(usuarios, roles, locales);
+    }
+
+    /** RF01: segundo factor TOTP (Google Authenticator). */
+    @Bean
+    public VerificarSegundoFactorUseCase verificarSegundoFactorUseCase(
+            UsuarioRepositoryPort usuarios, RolRepositoryPort roles, TotpPort totp) {
+        return new VerificarSegundoFactorUseCaseImpl(usuarios, roles, totp);
+    }
+
+    @Bean
+    public GestionarMfaUseCase gestionarMfaUseCase(UsuarioRepositoryPort usuarios, TotpPort totp) {
+        return new GestionarMfaUseCaseImpl(usuarios, totp);
     }
 
     @Bean

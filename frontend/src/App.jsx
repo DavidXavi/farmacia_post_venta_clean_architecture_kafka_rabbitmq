@@ -12,6 +12,7 @@ import { ReportesPage } from './pages/ReportesPage'
 import { AuditoriaPage } from './pages/AuditoriaPage'
 import { ActividadRecientePage } from './pages/ActividadRecientePage'
 import { UsuariosPage } from './pages/UsuariosPage'
+import { SeguridadPage } from './pages/SeguridadPage'
 import { PromocionesPage } from './pages/PromocionesPage'
 import { ConveniosPage } from './pages/ConveniosPage'
 import { CreditosPage } from './pages/CreditosPage'
@@ -44,6 +45,7 @@ function App() {
         <Route path="creditos" element={<CreditosPage />} />
         <Route path="catalogos" element={<CatalogosPage />} />
         <Route path="usuarios" element={<UsuariosPage />} />
+        <Route path="seguridad" element={<SeguridadPage />} />
         <Route path="reportes" element={<ReportesPage />} />
         <Route path="auditoria" element={<AuditoriaPage />} />
         <Route path="actividad-reciente" element={<ActividadRecientePage />} />

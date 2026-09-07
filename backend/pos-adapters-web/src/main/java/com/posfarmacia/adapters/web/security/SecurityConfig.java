@@ -3,11 +3,13 @@ package com.posfarmacia.adapters.web.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
@@ -18,9 +20,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
+    private final OAuth2LoginFailureHandler oauth2LoginFailureHandler;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                           OAuth2LoginSuccessHandler oauth2LoginSuccessHandler,
+                           OAuth2LoginFailureHandler oauth2LoginFailureHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.oauth2LoginSuccessHandler = oauth2LoginSuccessHandler;
+        this.oauth2LoginFailureHandler = oauth2LoginFailureHandler;
     }
 
     @Bean
@@ -30,7 +38,10 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login").permitAll()
+                        // Login con contrasena y segundo paso del MFA: aun no hay sesion que exigir.
+                        .requestMatchers("/api/auth/login", "/api/auth/mfa/verificar").permitAll()
+                        // Login social: el handshake con Google/Facebook lo maneja Spring Security.
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
                         .requestMatchers("/api/v1/docs/**", "/api/v1/swagger-ui/**", "/api/v1/swagger-ui.html").permitAll()
                         .requestMatchers("/api/auditoria/**")
                         .hasAnyAuthority("ROLE_ADMINISTRADOR", "VER_AUDITORIA")
@@ -80,6 +91,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/lineas-credito/**")
                         .hasAnyAuthority("ROLE_ADMINISTRADOR", "ROLE_OPERADOR_CENTRAL")
                         .anyRequest().authenticated())
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oauth2LoginSuccessHandler)
+                        .failureHandler(oauth2LoginFailureHandler))
+                // La API responde 401 en vez de redirigir a la pagina de login del navegador.
+                .exceptionHandling(manejo -> manejo.defaultAuthenticationEntryPointFor(
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                        peticion -> peticion.getRequestURI().startsWith("/api/")))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

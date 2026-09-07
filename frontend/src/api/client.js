@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8088'
+export const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8088'
 
 let currentToken = null
 let onUnauthorized = null
@@ -35,8 +35,12 @@ async function request(path, { method = 'GET', body, query } = {}) {
 
   if (!response.ok) {
     if (response.status === 401 && onUnauthorized) onUnauthorized()
-    const message = data?.title || data?.message || `Error ${response.status}`
-    throw new Error(message)
+    const message = data?.mensaje || data?.title || data?.message || `Error ${response.status}`
+    const error = new Error(message)
+    // Codigo funcional del backend (ErrorResponse.codigo), p. ej. MFA_REQUERIDA.
+    error.codigo = data?.codigo
+    error.status = response.status
+    throw error
   }
 
   return data
@@ -47,4 +51,5 @@ export const api = {
   post: (path, body) => request(path, { method: 'POST', body }),
   put: (path, body) => request(path, { method: 'PUT', body }),
   patch: (path, body) => request(path, { method: 'PATCH', body }),
+  del: (path) => request(path, { method: 'DELETE' }),
 }

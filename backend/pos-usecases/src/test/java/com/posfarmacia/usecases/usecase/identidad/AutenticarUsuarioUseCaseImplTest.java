@@ -55,6 +55,13 @@ class AutenticarUsuarioUseCaseImplTest {
         }
 
         @Override
+        public Optional<Usuario> buscarPorEmail(String email) {
+            return usuariosPorNombre.values().stream()
+                    .filter(u -> email.equals(u.getEmail()))
+                    .findFirst();
+        }
+
+        @Override
         public Usuario guardar(Usuario usuario) {
             usuariosPorNombre.put(usuario.getNombreUsuario(), usuario);
             return usuario;

@@ -8,5 +8,10 @@ import com.posfarmacia.usecases.dto.identidad.UsuarioAutenticado;
  */
 public interface AutenticarUsuarioUseCase {
 
+    /**
+     * Valida el primer factor. Si la cuenta tiene MFA, el resultado lo indica en
+     * {@code mfaHabilitado()} y el adaptador REST debe exigir el segundo factor antes de
+     * emitir un JWT de sesion completa.
+     */
     UsuarioAutenticado autenticar(String nombreUsuario, String password);
 }

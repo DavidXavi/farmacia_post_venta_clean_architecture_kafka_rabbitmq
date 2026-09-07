@@ -11,6 +11,9 @@ public interface UsuarioRepositoryPort {
 
     Optional<Usuario> buscarPorNombreUsuario(String nombreUsuario);
 
+    /** RF01: identifica la cuenta a la que corresponde un login social (Google/Facebook). */
+    Optional<Usuario> buscarPorEmail(String email);
+
     Usuario guardar(Usuario usuario);
 
     /** RF01: listado de usuarios registrados, reservado al rol Administrador. */

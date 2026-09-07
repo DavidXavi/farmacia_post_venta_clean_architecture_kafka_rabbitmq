@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UsuarioJpaRepository extends JpaRepository<UsuarioJpaEntity, UUID> {
 
     Optional<UsuarioJpaEntity> findByNombreUsuario(String nombreUsuario);
+
+    Optional<UsuarioJpaEntity> findByEmail(String email);
 }

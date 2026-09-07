@@ -10,6 +10,22 @@ function loadStoredSession() {
   return session
 }
 
+/**
+ * El login social vuelve del backend con el JWT en la URL, no con el cuerpo del login. El token
+ * ya trae la identidad firmada (sub, roles, permisos), asi que se lee de ahi en vez de pedirla otra vez.
+ */
+export function sesionDesdeToken(token) {
+  const datos = JSON.parse(atob(token.split('.')[1]))
+  return {
+    token,
+    usuarioId: datos.sub,
+    nombreUsuario: datos.nombreUsuario,
+    roles: datos.roles ?? [],
+    permisos: datos.permisos ?? [],
+    localId: datos.localId,
+  }
+}
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(loadStoredSession)
 
@@ -17,11 +33,24 @@ export function AuthProvider({ children }) {
     setAuthToken(session?.token ?? null)
   }, [session])
 
-  async function login(nombreUsuario, password) {
-    const data = await api.post('/api/auth/login', { nombreUsuario, password })
+  function guardar(data) {
     localStorage.setItem('posfarmacia.session', JSON.stringify(data))
     setSession(data)
     return data
+  }
+
+  /** Devuelve la sesion, o { mfaRequerido, mfaToken } si falta el codigo de Google Authenticator. */
+  async function login(nombreUsuario, password) {
+    const data = await api.post('/api/auth/login', { nombreUsuario, password })
+    return data.mfaRequerido ? data : guardar(data)
+  }
+
+  async function verificarMfa(mfaToken, codigo) {
+    return guardar(await api.post('/api/auth/mfa/verificar', { mfaToken, codigo }))
+  }
+
+  function iniciarSesionConToken(token) {
+    return guardar(sesionDesdeToken(token))
   }
 
   function logout() {
@@ -38,7 +67,9 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, login, logout, tieneRol }}>
+    <AuthContext.Provider
+      value={{ session, login, verificarMfa, iniciarSesionConToken, logout, tieneRol }}
+    >
       {children}
     </AuthContext.Provider>
   )

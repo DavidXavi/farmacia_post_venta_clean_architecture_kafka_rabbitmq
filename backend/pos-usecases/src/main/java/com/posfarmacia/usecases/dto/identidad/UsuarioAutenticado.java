@@ -14,5 +14,6 @@ public record UsuarioAutenticado(
         String nombreUsuario,
         Set<RolNombre> roles,
         Set<PermisoEspecial> permisos,
-        UUID localId) {
+        UUID localId,
+        boolean mfaHabilitado) {
 }

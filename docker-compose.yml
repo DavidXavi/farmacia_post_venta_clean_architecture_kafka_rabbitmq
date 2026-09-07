@@ -76,6 +76,12 @@ services:
       JWT_KEY: ${JWT_KEY:?debes definir JWT_KEY en .env}
       JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-480}
       POS_FARMACIA_CORS_ORIGENES_PERMITIDOS: http://localhost:5174
+      # RF01: login social. Sin credenciales reales los botones existen pero el proveedor rechaza.
+      OAUTH2_URL_FRONTEND: http://localhost:5174
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-sin-configurar}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-sin-configurar}
+      FACEBOOK_CLIENT_ID: ${FACEBOOK_CLIENT_ID:-sin-configurar}
+      FACEBOOK_CLIENT_SECRET: ${FACEBOOK_CLIENT_SECRET:-sin-configurar}
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: "5672"

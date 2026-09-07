@@ -23,7 +23,7 @@ public final class UsuarioMapper {
                         .map(PermisoEspecial::valueOf)
                         .collect(Collectors.toCollection(() -> EnumSet.noneOf(PermisoEspecial.class)));
 
-        return new Usuario(
+        Usuario usuario = new Usuario(
                 entity.getId(),
                 entity.getNombreUsuario(),
                 entity.getPasswordHash(),
@@ -31,6 +31,17 @@ public final class UsuarioMapper {
                 EstadoCuenta.valueOf(entity.getEstado()),
                 permisos,
                 rolesIds);
+
+        if (entity.getProveedorOauth() != null || entity.getEmail() != null) {
+            usuario.vincularCuentaSocial(entity.getProveedorOauth(), entity.getEmail());
+        }
+        if (entity.getMfaSecret() != null) {
+            usuario.prepararMfa(entity.getMfaSecret());
+            if (entity.isMfaHabilitado()) {
+                usuario.confirmarMfa();
+            }
+        }
+        return usuario;
     }
 
     public static UsuarioJpaEntity aEntidad(Usuario usuario) {
@@ -44,6 +55,10 @@ public final class UsuarioMapper {
                 usuario.getPasswordHash(),
                 usuario.getEstado().name(),
                 usuario.getLocalId(),
-                permisos);
+                permisos,
+                usuario.getEmail(),
+                usuario.getProveedorOauth(),
+                usuario.getMfaSecret(),
+                usuario.tieneMfaHabilitado());
     }
 }
